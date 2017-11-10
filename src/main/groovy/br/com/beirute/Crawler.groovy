@@ -1,11 +1,13 @@
 package br.com.beirute
 
+import br.com.beirute.cidades.BeloHorizonte
 import br.com.beirute.cidades.Goiania
 import br.com.beirute.cidades.RioDeJaneiro
 import br.com.beirute.cidades.SaoPaulo
 import br.com.beirute.cidades.Vitoria
 import groovy.json.JsonSlurper
 import groovy.json.JsonSlurperClassic
+import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -15,8 +17,11 @@ class Crawler {
 
     public void execute() {
 
+        List<DataAndHeader> cidades = [new SaoPaulo(), new RioDeJaneiro(), new Vitoria(), new BeloHorizonte(), new Goiania()]
 
-        List<DataAndHeader> cidades = [new SaoPaulo(), new RioDeJaneiro(), new Vitoria(), new Goiania()]
+        cidades.each {
+            getInfo(it)
+        }
 
         while (true) {
             cidades.each { cidade ->
@@ -37,6 +42,7 @@ class Crawler {
                         pokemon.nome = aa.value.pokemon_name
                         pokemon.lat = aa.value.latitude
                         pokemon.lon = aa.value.longitude
+                        pokemon.dataDesaparecimento = new Date(aa.value.disappear_time)
                         pokemons << pokemon
                         if (pokemon.id == 201)
                             JOptionPane.showMessageDialog(null, "UNOWN!!!!!!!!!!!")
@@ -66,8 +72,21 @@ class Crawler {
             println '    FIM'
             println '    Aguarde 1 min para a atualização'
             println ''
-            Thread.sleep(100000)
+            Thread.sleep(10000)
         }
+    }
+
+    public void getInfo(DataAndHeader dataAndHeader){
+
+        Connection.Response res = Jsoup.connect(dataAndHeader.getMainUrl()).execute();
+
+        Document doc = res.parse()
+        def body = doc.toString()
+        def token = body.findAll(/(['])(?:(?=(\\?))\2.)*?\1/)[0].replace("'","")
+
+        dataAndHeader.setPhpSession(res.cookie("PHPSESSID"))
+        dataAndHeader.setToken(token)
+
     }
 
 }

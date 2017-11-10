@@ -6,8 +6,11 @@ package br.com.beirute
 interface DataAndHeader {
 
     String getName()
+    String getMainUrl()
     String getUrl()
     Map getData()
     Map getHeaders()
 
+    void setPhpSession(String phpSession)
+    void setToken(String token)
 }
